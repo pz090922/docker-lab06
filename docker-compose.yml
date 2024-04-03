@@ -1,0 +1,49 @@
+version: "3"
+services:
+  frontend:
+    restart: on-failure:5
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - frontend_network
+  nginx:
+    restart: on-failure:5
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      - frontend_network
+  database:
+    restart: on-failure:5
+    image: mongo:latest
+    platform: linux/amd64
+    container_name: database
+    networks:
+      - backend_network
+  backend:
+    restart: on-failure:5
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_NAME=database
+      - BACKEND_PORT=3001
+    networks:
+      - backend_network
+      - frontend_network
+    depends_on:
+      - "database"
+
+networks:
+  backend_network: {}
+  frontend_network: {}
